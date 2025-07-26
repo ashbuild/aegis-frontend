@@ -1,6 +1,7 @@
 import React from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import { router } from 'expo-router';
 
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
@@ -15,6 +16,20 @@ import { Spacing, Accessibility } from '@/constants/DesignSystem';
 
 export default function HomeScreen() {
   const { colors, spacing, isDark } = useDesignTheme();
+
+  const handleScanReceipt = () => {
+    router.push('/(tabs)/scan');
+  };
+
+  const handleAddManually = () => {
+    // Navigate to a manual entry form or modal
+    // For now, we'll show an alert or navigate to scan with a flag
+    router.push('/(tabs)/scan');
+  };
+
+  const handleFABPress = () => {
+    router.push('/(tabs)/scan');
+  };
 
   const WelcomeHeader = () => (
     <Animated.View 
@@ -58,6 +73,7 @@ export default function HomeScreen() {
             variant="primary"
             size="medium"
             style={styles.actionButton}
+            onPress={handleScanReceipt}
             accessibilityHint="Scan a new receipt to add transaction"
           />
           <Button
@@ -65,6 +81,7 @@ export default function HomeScreen() {
             variant="secondary"
             size="medium"
             style={styles.actionButton}
+            onPress={handleAddManually}
             accessibilityHint="Manually add a new transaction"
           />
         </View>
@@ -103,6 +120,7 @@ export default function HomeScreen() {
         variant="primary"
         rotateOnPress={true}
         style={styles.fab}
+        onPress={handleFABPress}
         accessibilityLabel={Accessibility.labels.scanReceipt}
         accessibilityHint="Quick scan receipt"
       />
