@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
+import { getItemAsync } from 'expo-secure-store';
 import { useAuth } from './_layout';
 
 export default function SplashScreen() {
@@ -11,7 +11,7 @@ export default function SplashScreen() {
   useEffect(() => {
     if (!isLoading) {
       if (isAuthenticated) {
-        router.replace('/(tabs)/index');
+        router.replace('/(tabs)');
       } else {
         router.replace('/login');
       }

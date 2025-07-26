@@ -9,7 +9,7 @@ const hubs = [
   { name: 'KitchenIQ', icon: 'coffee' },
   { name: 'WalletWatch', icon: 'briefcase' },
   { name: 'InvestBank', icon: 'trending-up', disabled: true },
-  { name: 'Eco-Track', icon: 'leaf', disabled: true },
+  { name: 'Eco-Track', icon: 'activity', disabled: true },
 ];
 
 export default function IntelligentHubsWidget() {

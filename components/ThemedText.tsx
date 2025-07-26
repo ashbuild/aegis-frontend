@@ -1,11 +1,16 @@
 import { StyleSheet, Text, type TextProps } from 'react-native';
 
 import { useThemeColor } from '@/hooks/useThemeColor';
+import { Typography, Colors, Accessibility, type TypographyStyle } from '@/constants/DesignSystem';
+import { useColorScheme } from '@/hooks/useColorScheme';
 
 export type ThemedTextProps = TextProps & {
   lightColor?: string;
   darkColor?: string;
-  type?: 'default' | 'title' | 'defaultSemiBold' | 'subtitle' | 'link';
+  type?: TypographyStyle | 'default' | 'title' | 'defaultSemiBold' | 'subtitle' | 'link';
+  colorToken?: 'text-primary' | 'text-secondary' | 'action-primary' | 'semantic-success' | 'semantic-warning' | 'semantic-error';
+  accessible?: boolean;
+  accessibilityLabel?: string;
 };
 
 export function ThemedText({
@@ -13,53 +18,79 @@ export function ThemedText({
   lightColor,
   darkColor,
   type = 'default',
+  colorToken = 'text-primary',
+  accessible = true,
+  accessibilityLabel,
   ...rest
 }: ThemedTextProps) {
-  const color = useThemeColor({ light: lightColor, dark: darkColor }, 'text');
+  const colorScheme = useColorScheme();
+  
+  // Safe access to colors with fallbacks
+  const colors = Colors[colorScheme ?? 'light'] || Colors.light;
+  const defaultColor = colors[colorToken] || colors['text-primary'] || colors.text || '#000000';
+  const color = useThemeColor({ light: lightColor, dark: darkColor }, colorToken) || defaultColor;
+
+  // Get typography style from design system
+  const getTypographyStyle = () => {
+    // Safe access to typography styles
+    if (Typography?.textStyles?.[type as TypographyStyle]) {
+      return Typography.textStyles[type as TypographyStyle];
+    }
+    
+    // Legacy support for existing types
+    switch (type) {
+      case 'title':
+        return Typography?.textStyles?.h1 || Typography.textStyles.body;
+      case 'defaultSemiBold':
+        return { 
+          ...(Typography?.textStyles?.body || {}), 
+          fontWeight: Typography?.fontWeight?.semiBold || '600' 
+        };
+      case 'subtitle':
+        return Typography?.textStyles?.h3 || Typography.textStyles.body;
+      case 'link':
+        return { 
+          ...(Typography?.textStyles?.body || {}), 
+          color: colors['action-primary'] || '#0a7ea4' 
+        };
+      default:
+        return Typography?.textStyles?.body || {
+          fontFamily: 'Poppins-Regular',
+          fontSize: 16,
+          fontWeight: '400' as const,
+          lineHeight: 24,
+        };
+    }
+  };
+
+  const typographyStyle = getTypographyStyle();
 
   return (
     <Text
       style={[
         { color },
-        type === 'default' ? styles.default : undefined,
-        type === 'title' ? styles.title : undefined,
-        type === 'defaultSemiBold' ? styles.defaultSemiBold : undefined,
-        type === 'subtitle' ? styles.subtitle : undefined,
-        type === 'link' ? styles.link : undefined,
+        typographyStyle,
         style,
       ]}
+      accessible={accessible}
+      accessibilityLabel={accessibilityLabel}
+      accessibilityRole={Accessibility.roles.text}
       {...rest}
     />
   );
 }
 
+// Legacy styles for backward compatibility
 const styles = StyleSheet.create({
-  default: {
-    fontSize: 16,
-    lineHeight: 24,
-    fontFamily: 'Poppins',
-  },
+  default: Typography.textStyles.body,
   defaultSemiBold: {
-    fontSize: 16,
-    lineHeight: 24,
-    fontWeight: '600',
-    fontFamily: 'Poppins-Bold',
+    ...Typography.textStyles.body,
+    fontWeight: Typography.fontWeight.semiBold,
   },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    lineHeight: 32,
-    fontFamily: 'Poppins-Bold',
-  },
-  subtitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    fontFamily: 'Poppins-Bold',
-  },
+  title: Typography.textStyles.h1,
+  subtitle: Typography.textStyles.h3,
   link: {
-    lineHeight: 30,
-    fontSize: 16,
-    color: '#0a7ea4',
-    fontFamily: 'Poppins',
+    ...Typography.textStyles.body,
+    color: '#0a7ea4', // Will be overridden by theme
   },
 });

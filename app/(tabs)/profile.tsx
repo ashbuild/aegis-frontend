@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, TouchableOpacity, ScrollView, FlatList } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { getAuth, signOut } from 'firebase/auth';
+import { signOut } from 'firebase/auth';
 import { useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 
@@ -10,6 +10,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { useAuth } from '../_layout';
+import { auth } from '@/config/firebase';
 
 // Placeholder data for badges
 const badgesData = [
@@ -24,12 +25,11 @@ export default function ProfileScreen() {
   const themeColors = Colors[colorScheme ?? 'light'];
   const { user } = useAuth();
   const router = useRouter();
-  const auth = getAuth();
 
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      await SecureStore.deleteItemAsync('userToken');
+      await SecureStore.removeItem('authToken');
       router.replace('/login');
     } catch (error: any) {
       console.error("Logout failed", error);

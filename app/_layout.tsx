@@ -1,29 +1,15 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack, useRouter, useSegments } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, View, Text } from 'react-native';
 import 'react-native-reanimated';
-import * as SecureStore from 'expo-secure-store';
 import { useEffect, useState, createContext, useContext } from 'react';
-import { initializeApp } from 'firebase/app';
-import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
+import * as SecureStore from 'expo-secure-store';
+import { onAuthStateChanged, User } from 'firebase/auth';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
-
-// Your web app's Firebase configuration
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { auth } from '@/config/firebase';
 
 interface AuthContextType {
   user: User | null;
@@ -46,11 +32,16 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    console.log('🔄 Setting up auth state listener...');
     const unsubscribe = onAuthStateChanged(auth, (user) => {
+      console.log('🔥 Auth state changed:', user ? `User: ${user.email} (${user.uid})` : 'No user');
       setUser(user);
       setIsLoading(false);
     });
-    return () => unsubscribe();
+    return () => {
+      console.log('🔄 Cleaning up auth state listener');
+      unsubscribe();
+    };
   }, []);
 
   return (
@@ -66,16 +57,44 @@ function RootLayoutNav() {
   const { user, isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
-    if (isLoading) return;
+    console.log('🚦 Navigation effect triggered');
+    console.log('isLoading:', isLoading);
+    console.log('isAuthenticated:', isAuthenticated);
+    console.log('segments:', segments);
+    
+    if (isLoading) {
+      console.log('⏳ Still loading, skipping navigation logic');
+      return;
+    }
 
-    const inAuthGroup = segments[0] === '(auth)';
+    // Safe check for segments array
+    const currentSegment = segments && segments.length > 0 ? segments[0] : null;
+    const inTabsGroup = currentSegment === '(tabs)';
+    const inAuthFlow = currentSegment === 'login' || currentSegment === 'register';
 
-    if (isAuthenticated && !inAuthGroup) {
-      // User is authenticated, but not in the auth group, redirect to home
-      router.replace('/(tabs)/index');
-    } else if (!isAuthenticated && inAuthGroup) {
-      // User is not authenticated, but in the auth group, redirect to login
+    console.log('📍 Navigation analysis:', {
+      currentSegment,
+      inTabsGroup,
+      inAuthFlow,
+      isAuthenticated
+    });
+
+    if (isAuthenticated) {
+      if (inAuthFlow) {
+        // User is authenticated but on login/register page, redirect to tabs
+        console.log('🚀 Redirecting authenticated user from auth flow to tabs');
+        router.replace('/(tabs)');
+      } else if (!inTabsGroup) {
+        // User is authenticated but not in tabs or auth flow, redirect to tabs
+        console.log('🚀 Redirecting authenticated user to tabs');
+        router.replace('/(tabs)');
+      }
+    } else if (!isAuthenticated && inTabsGroup) {
+      // User is not authenticated, but trying to access tabs, redirect to login
+      console.log('🔒 Redirecting unauthenticated user to login');
       router.replace('/login');
+    } else {
+      console.log('✅ User is on the correct screen, no navigation needed');
     }
   }, [isAuthenticated, isLoading, segments]);
 
@@ -111,11 +130,12 @@ export default function RootLayout() {
   }
 
   return (
-    <AuthProvider>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <RootLayoutNav />
-        <StatusBar style="auto" />
-      </ThemeProvider>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+          <RootLayoutNav />
+        </ThemeProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
