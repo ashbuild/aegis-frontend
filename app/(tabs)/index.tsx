@@ -9,7 +9,6 @@ import { Button, Card, FAB } from '@/components/ui';
 import InsightsWidget from '@/components/widgets/InsightsWidget';
 import TransactionsWidget from '@/components/widgets/TransactionsWidget';
 import IntelligentHubsWidget from '@/components/widgets/IntelligentHubsWidget';
-import FirebaseTestWidget from '@/components/widgets/FirebaseTestWidget';
 
 import { useDesignTheme } from '@/hooks/useDesignTheme';
 import { Spacing, Accessibility } from '@/constants/DesignSystem';
@@ -105,9 +104,6 @@ export default function HomeScreen() {
         <InsightsWidget />
         <TransactionsWidget />
         <IntelligentHubsWidget />
-        
-        {/* Firebase Integration Test */}
-        <FirebaseTestWidget />
         
         {/* Bottom spacing for FAB */}
         <View style={styles.bottomSpacing} />
