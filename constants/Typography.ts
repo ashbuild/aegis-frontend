@@ -1,30 +1,31 @@
 /**
  * Design System Typography
- * Based on Inter font family with Poppins fallback
- * Follows 8pt grid system for consistent spacing
+ * Using Plus Jakarta Sans for modern, clean typography
+ * With optimized sizes for better visual hierarchy
  */
 
 export const Typography = {
   // Font families
   fontFamily: {
-    primary: 'Inter',
-    fallback: 'Poppins-Regular',
-    bold: 'Poppins-Bold',
+    primary: 'PlusJakartaSans-Regular',
+    medium: 'PlusJakartaSans-Medium',
+    semiBold: 'PlusJakartaSans-SemiBold',
+    bold: 'PlusJakartaSans-Bold',
   },
 
-  // Font sizes (in points)
+  // Font sizes (in points) - Updated for better visual hierarchy
   fontSize: {
-    h1: 30,
-    h2: 24,
-    h3: 20,
-    h4: 18,
+    h1: 32,
+    h2: 26,
+    h3: 22,
+    h4: 19,
     body: 16,
     bodySmall: 14,
-    caption: 12,
-    label: 10,
+    caption: 13,
+    label: 11,
   },
 
-  // Font weights
+  // Font weights - Mapped to actual font files
   fontWeight: {
     regular: '400' as const,
     medium: '500' as const,
@@ -32,15 +33,15 @@ export const Typography = {
     bold: '700' as const,
   },
 
-  // Line heights (following 8pt grid)
+  // Line heights (optimized for readability)
   lineHeight: {
-    h1: 40,
-    h2: 32,
-    h3: 28,
-    h4: 24,
+    h1: 44, // Increased for better heading presence
+    h2: 36,
+    h3: 32,
+    h4: 28,
     body: 24,
     bodySmall: 20,
-    caption: 16,
+    caption: 18,
     label: 16,
   },
 

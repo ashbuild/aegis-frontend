@@ -133,6 +133,20 @@ export default function TabLayout() {
           tabBarAccessibilityLabel: Accessibility.labels.profileTab,
         }}
       />
+      <Tabs.Screen
+        name="kitcheniq"
+        options={{
+          href: null, // Hide from tab bar
+          title: 'KitchenIQ',
+        }}
+      />
+      <Tabs.Screen
+        name="walletwatch"
+        options={{
+          href: null, // Hide from tab bar
+          title: 'WalletWatch',
+        }}
+      />
     </Tabs>
   );
 }

@@ -10,6 +10,7 @@ export default {
     "scheme": "aegis",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "plugins": ["expo-font"],
     "extra": {
       "firebaseApiKey": "AIzaSyCcCdqh9fn84o8rqk9CbPQsmOSQDD0QWno",
       "firebaseAuthDomain": "aegis-frontend.firebaseapp.com",

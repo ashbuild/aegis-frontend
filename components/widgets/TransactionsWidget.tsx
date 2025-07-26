@@ -1,40 +1,83 @@
-import React from 'react';
-import { View, StyleSheet, useColorScheme } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, useColorScheme, TouchableOpacity } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { Feather } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
-
-const transactions = [
-  { id: '1', merchant: 'Starbucks', icon: 'coffee', amount: -12.50, time: '9:30 AM' },
-  { id: '2', merchant: 'Amazon', icon: 'shopping-cart', amount: -54.99, time: 'Yesterday' },
-  { id: '3', merchant: 'Shell', icon: 'truck', amount: -45.30, time: '2 days ago' },
-];
+import { router } from 'expo-router';
+import { apiService, type Transaction } from '@/services/api';
 
 export default function TransactionsWidget() {
   const colorScheme = useColorScheme();
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadTransactions();
+  }, []);
+
+  const loadTransactions = async () => {
+    try {
+      const data = await apiService.getTransactions();
+      setTransactions(data.slice(0, 3)); // Show only first 3 for widget
+    } catch (error) {
+      console.error('Error loading transactions:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    if (date.toDateString() === today.toDateString()) {
+      return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    } else if (date.toDateString() === yesterday.toDateString()) {
+      return 'Yesterday';
+    } else {
+      const diffTime = Math.abs(today.getTime() - date.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      return `${diffDays} days ago`;
+    }
+  };
+
   const cardStyle = {
     backgroundColor: Colors[colorScheme ?? 'light'].card,
     shadowColor: Colors[colorScheme ?? 'light'].text,
   };
 
+  const handlePress = () => {
+    router.push('/(tabs)/history');
+  };
+
   return (
     <View style={styles.container}>
       <ThemedText type="subtitle" style={styles.title}>Recent Transactions</ThemedText>
-      <ThemedView style={[styles.card, cardStyle]}>
-        {transactions.map((tx, index) => (
-          <View key={tx.id} style={[styles.transactionRow, index === transactions.length - 1 && styles.lastRow]}>
-            <View style={[styles.iconContainer, { backgroundColor: Colors[colorScheme ?? 'light'].background }]}>
-              <Feather name={tx.icon as any} size={20} color={Colors[colorScheme ?? 'light'].icon} />
-            </View>
-            <View style={styles.transactionDetails}>
-              <ThemedText style={styles.merchantText}>{tx.merchant}</ThemedText>
-              <ThemedText style={styles.timeText}>{tx.time}</ThemedText>
-            </View>
-            <ThemedText style={styles.amountText}>${tx.amount.toFixed(2)}</ThemedText>
-          </View>
-        ))}
-      </ThemedView>
+      <TouchableOpacity onPress={handlePress} activeOpacity={0.7}>
+        <ThemedView style={[styles.card, cardStyle]}>
+          {loading ? (
+            <ThemedText style={styles.loadingText}>Loading transactions...</ThemedText>
+          ) : (
+            transactions.map((tx, index) => (
+              <View key={tx.id} style={[styles.transactionRow, index === transactions.length - 1 && styles.lastRow]}>
+                <View style={[styles.iconContainer, { backgroundColor: Colors[colorScheme ?? 'light'].background }]}>
+                  <Feather name={tx.icon as any} size={20} color={Colors[colorScheme ?? 'light'].icon} />
+                </View>
+                <View style={styles.transactionDetails}>
+                  <ThemedText style={styles.merchantText}>{tx.merchant}</ThemedText>
+                  <ThemedText style={styles.timeText}>{formatDate(tx.date)}</ThemedText>
+                </View>
+                <ThemedText style={[styles.amountText, { color: tx.amount < 0 ? '#F44336' : '#4CAF50' }]}>
+                  {tx.amount < 0 ? '-' : '+'}${Math.abs(tx.amount).toFixed(2)}
+                </ThemedText>
+              </View>
+            ))
+          )}
+        </ThemedView>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -88,5 +131,11 @@ const styles = StyleSheet.create({
   amountText: {
     fontSize: 16,
     fontFamily: 'Poppins-Bold',
+  },
+  loadingText: {
+    textAlign: 'center',
+    color: '#999',
+    paddingVertical: 20,
+    fontFamily: 'Poppins',
   },
 });

@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, StyleSheet, useColorScheme } from 'react-native';
+import { View, StyleSheet, useColorScheme, TouchableOpacity } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { Feather } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
+import { router } from 'expo-router';
 
 const hubs = [
   { name: 'KitchenIQ', icon: 'coffee' },
@@ -15,27 +16,43 @@ const hubs = [
 export default function IntelligentHubsWidget() {
   const colorScheme = useColorScheme();
 
+  const handleHubPress = (hubName: string, disabled: boolean) => {
+    if (!disabled) {
+      if (hubName.toLowerCase() === 'kitcheniq') {
+        router.push('/(tabs)/kitcheniq' as any);
+      } else if (hubName.toLowerCase() === 'walletwatch') {
+        router.push('/(tabs)/walletwatch' as any);
+      }
+    }
+  };
+
   return (
     <View style={styles.container}>
       <ThemedText type="subtitle" style={styles.title}>Intelligent Hubs</ThemedText>
       <View style={styles.hubContainer}>
         {hubs.map((hub) => (
-          <ThemedView
+          <TouchableOpacity
             key={hub.name}
-            style={[
-              styles.hub,
-              {
-                backgroundColor: Colors[colorScheme ?? 'light'].card,
-                shadowColor: Colors[colorScheme ?? 'light'].text,
-              },
-              hub.disabled && styles.disabledHub,
-            ]}
+            disabled={hub.disabled}
+            onPress={() => handleHubPress(hub.name, hub.disabled || false)}
+            activeOpacity={0.7}
           >
-            <Feather name={hub.icon as any} size={28} color={hub.disabled ? Colors[colorScheme ?? 'light'].icon : Colors[colorScheme ?? 'light'].tint} />
-            <ThemedText style={[styles.hubText, hub.disabled && { color: Colors[colorScheme ?? 'light'].icon }]}>
-              {hub.name}
-            </ThemedText>
-          </ThemedView>
+            <ThemedView
+              style={[
+                styles.hub,
+                {
+                  backgroundColor: Colors[colorScheme ?? 'light'].card,
+                  shadowColor: Colors[colorScheme ?? 'light'].text,
+                },
+                hub.disabled && styles.disabledHub,
+              ]}
+            >
+              <Feather name={hub.icon as any} size={28} color={hub.disabled ? Colors[colorScheme ?? 'light'].icon : Colors[colorScheme ?? 'light'].tint} />
+              <ThemedText style={[styles.hubText, hub.disabled && { color: Colors[colorScheme ?? 'light'].icon }]}>
+                {hub.name}
+              </ThemedText>
+            </ThemedView>
+          </TouchableOpacity>
         ))}
       </View>
     </View>

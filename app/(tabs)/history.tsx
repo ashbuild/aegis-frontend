@@ -1,29 +1,53 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, FlatList, ScrollView, TouchableOpacity, useColorScheme } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, FlatList, ScrollView, TouchableOpacity, useColorScheme, RefreshControl } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { Colors } from '@/constants/Colors';
+import { apiService, type Transaction } from '@/services/api';
 
-const transactionsData = [
-  { id: '1', category: 'Food', merchant: 'Starbucks', icon: 'coffee', date: 'Jul 25, 2025', amount: -5.20 },
-  { id: '2', category: 'Tech', merchant: 'Amazon', icon: 'shopping-cart', date: 'Jul 24, 2025', amount: -34.99 },
-  { id: '3', category: 'Food', merchant: 'Whole Foods', icon: 'shopping-bag', date: 'Jul 23, 2025', amount: -78.50 },
-  { id: '4', category: 'Lifestyle', merchant: 'Gym Membership', icon: 'activity', date: 'Jul 22, 2025', amount: -45.00 },
-  { id: '5', category: 'Education', merchant: 'Coursera', icon: 'book', date: 'Jul 21, 2025', amount: -15.00 },
-  { id: '6', category: 'Miscellaneous', merchant: 'Pharmacy', icon: 'plus-circle', date: 'Jul 20, 2025', amount: -12.75 },
-  { id: '7', category: 'Food', merchant: 'Restaurant', icon: 'coffee', date: 'Jul 19, 2025', amount: -25.00 },
-];
-
-const categories = ['All', 'Food', 'Tech', 'Education', 'Lifestyle', 'Miscellaneous'];
+const categories = ['All', 'Food & Drink', 'Shopping', 'Transportation', 'Groceries', 'Entertainment'];
 
 export default function HistoryScreen() {
   const colorScheme = useColorScheme();
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    loadTransactions();
+  }, []);
+
+  const loadTransactions = async () => {
+    try {
+      const data = await apiService.getTransactions();
+      setTransactions(data);
+    } catch (error) {
+      console.error('Error loading transactions:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadTransactions();
+    setRefreshing(false);
+  };
 
   const filteredTransactions = selectedCategory === 'All'
-    ? transactionsData
-    : transactionsData.filter(transaction => transaction.category === selectedCategory);
+    ? transactions
+    : transactions.filter(transaction => transaction.category === selectedCategory);
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric' 
+    });
+  };
 
   const renderCategoryChip = (item: string) => {
     const isSelected = selectedCategory === item;
@@ -44,33 +68,65 @@ export default function HistoryScreen() {
     );
   };
 
-  const renderTransactionItem = ({ item }: { item: typeof transactionsData[0] }) => (
+  const renderTransactionItem = ({ item }: { item: Transaction }) => (
     <ThemedView style={[styles.transactionCard, { shadowColor: Colors[colorScheme ?? 'light'].text }]}>
       <View style={[styles.iconContainer, { backgroundColor: Colors[colorScheme ?? 'light'].background }]}>
         <Feather name={item.icon as any} size={20} color={Colors[colorScheme ?? 'light'].icon} />
       </View>
       <View style={styles.transactionDetails}>
         <ThemedText style={styles.transactionMerchant}>{item.merchant}</ThemedText>
-        <ThemedText style={styles.transactionDate}>{item.date}</ThemedText>
+        <ThemedText style={styles.transactionDate}>{formatDate(item.date)}</ThemedText>
+        <ThemedText style={styles.transactionCategory}>{item.category}</ThemedText>
       </View>
-      <ThemedText style={styles.transactionAmount}>${item.amount.toFixed(2)}</ThemedText>
+      <ThemedText style={[styles.transactionAmount, { color: item.amount < 0 ? '#F44336' : '#4CAF50' }]}>
+        {item.amount < 0 ? '-' : '+'}${Math.abs(item.amount).toFixed(2)}
+      </ThemedText>
     </ThemedView>
   );
+
+  const totalSpent = filteredTransactions.reduce((sum, transaction) => sum + Math.abs(transaction.amount), 0);
 
   return (
     <ThemedView style={styles.container}>
       <ThemedText type="title" style={styles.header}>Transaction History</ThemedText>
+      
+      {/* Summary Card */}
+      <ThemedView style={[styles.summaryCard, { backgroundColor: Colors[colorScheme ?? 'light'].card }]}>
+        <ThemedText style={styles.summaryLabel}>
+          {selectedCategory === 'All' ? 'Total Transactions' : `${selectedCategory} Spending`}
+        </ThemedText>
+        <ThemedText style={styles.summaryAmount}>${totalSpent.toFixed(2)}</ThemedText>
+        <ThemedText style={styles.summaryCount}>
+          {filteredTransactions.length} transaction{filteredTransactions.length !== 1 ? 's' : ''}
+        </ThemedText>
+      </ThemedView>
+
       <View style={styles.categoryContainer}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryScrollView}>
           {categories.map(cat => renderCategoryChip(cat))}
         </ScrollView>
       </View>
+      
       <FlatList
         data={filteredTransactions}
         renderItem={renderTransactionItem}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.transactionsList}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={Colors[colorScheme ?? 'light'].tint}
+          />
+        }
+        ListEmptyComponent={
+          loading ? (
+            <ThemedText style={styles.emptyText}>Loading transactions...</ThemedText>
+          ) : (
+            <ThemedText style={styles.emptyText}>No transactions found</ThemedText>
+          )
+        }
       />
     </ThemedView>
   );
@@ -139,8 +195,46 @@ const styles = StyleSheet.create({
     color: '#9E9E9E',
     fontFamily: 'Poppins',
   },
+  transactionCategory: {
+    fontSize: 10,
+    color: '#666',
+    fontFamily: 'Poppins',
+    marginTop: 2,
+  },
   transactionAmount: {
     fontSize: 16,
     fontFamily: 'Poppins-Bold',
+  },
+  summaryCard: {
+    marginHorizontal: 16,
+    marginBottom: 16,
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    elevation: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  summaryLabel: {
+    fontSize: 14,
+    color: '#666',
+    fontFamily: 'Poppins',
+  },
+  summaryAmount: {
+    fontSize: 24,
+    fontFamily: 'Poppins-Bold',
+    marginVertical: 4,
+  },
+  summaryCount: {
+    fontSize: 12,
+    color: '#999',
+    fontFamily: 'Poppins',
+  },
+  emptyText: {
+    textAlign: 'center',
+    color: '#999',
+    marginTop: 50,
+    fontSize: 16,
   },
 });
