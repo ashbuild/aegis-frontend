@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, FlatList } from 'react-native';
+import { StyleSheet, TouchableOpacity, ScrollView, FlatList } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { getAuth, signOut } from 'firebase/auth';
 import { useRouter } from 'expo-router';
@@ -7,6 +7,8 @@ import * as SecureStore from 'expo-secure-store';
 
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { ThemedView } from '@/components/ThemedView';
+import { ThemedText } from '@/components/ThemedText';
 import { useAuth } from '../_layout';
 
 // Placeholder data for badges
@@ -29,45 +31,45 @@ export default function ProfileScreen() {
       await signOut(auth);
       await SecureStore.deleteItemAsync('userToken');
       router.replace('/login');
-    } catch (error) {
+    } catch (error: any) {
       console.error("Logout failed", error);
       alert("Logout failed: " + error.message);
     }
   };
 
   const renderBadge = ({ item }: { item: typeof badgesData[0] }) => (
-    <View style={[styles.badgeCard, { backgroundColor: themeColors.card }]}>
+    <ThemedView style={[styles.badgeCard, { elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2 }]}>
       <Feather name={item.icon as any} size={30} color={themeColors.tint} />
-      <Text style={[styles.badgeText, { color: themeColors.primaryText }]}>{item.name}</Text>
-    </View>
+      <ThemedText style={styles.badgeText}>{item.name}</ThemedText>
+    </ThemedView>
   );
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: themeColors.background }]}>
-      <View style={styles.profileHeader}>
-        <View style={[styles.avatar, { backgroundColor: themeColors.tint }]}>
-          <Text style={[styles.avatarText, { color: themeColors.background }]}>
+      <ThemedView style={styles.profileHeader}>
+        <ThemedView style={[styles.avatar, { backgroundColor: themeColors.tint }]}>
+          <ThemedText style={styles.avatarText} lightColor="#FFFFFF" darkColor="#FFFFFF">
             {user?.email ? user.email.charAt(0).toUpperCase() : 'U'}
-          </Text>
-        </View>
-        <Text style={[styles.userName, { color: themeColors.primaryText }]}>{user?.email || 'User Name'}</Text>
-        <Text style={[styles.userEmail, { color: themeColors.secondaryText }]}>{user?.email || 'user@example.com'}</Text>
-      </View>
+          </ThemedText>
+        </ThemedView>
+        <ThemedText style={styles.userName}>{user?.email || 'User Name'}</ThemedText>
+        <ThemedText style={styles.userEmail} type="subtitle">{user?.email || 'user@example.com'}</ThemedText>
+      </ThemedView>
 
-      <View style={[styles.section, { backgroundColor: themeColors.card }]}>
-        <Text style={[styles.sectionTitle, { color: themeColors.primaryText }]}>Account Settings</Text>
+      <ThemedView style={[styles.section, { elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2 }]}>
+        <ThemedText style={styles.sectionTitle}>Account Settings</ThemedText>
         <TouchableOpacity style={styles.settingItem}>
-          <Text style={[styles.settingText, { color: themeColors.primaryText }]}>Change Password</Text>
-          <Feather name="chevron-right" size={20} color={themeColors.secondaryText} />
+          <ThemedText style={styles.settingText}>Change Password</ThemedText>
+          <Feather name="chevron-right" size={20} color={themeColors.icon} />
         </TouchableOpacity>
         <TouchableOpacity style={styles.settingItem} onPress={handleLogout}>
-          <Text style={[styles.settingText, { color: themeColors.error }]}>Logout</Text>
+          <ThemedText style={[styles.settingText, { color: themeColors.error }]}>Logout</ThemedText>
           <Feather name="log-out" size={20} color={themeColors.error} />
         </TouchableOpacity>
-      </View>
+      </ThemedView>
 
-      <View style={[styles.section, { backgroundColor: themeColors.card }]}>
-        <Text style={[styles.sectionTitle, { color: themeColors.primaryText }]}>Awards & Badges</Text>
+      <ThemedView style={[styles.section, { elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2 }]}>
+        <ThemedText style={styles.sectionTitle}>Awards & Badges</ThemedText>
         <FlatList
           data={badgesData}
           renderItem={renderBadge}
@@ -76,7 +78,7 @@ export default function ProfileScreen() {
           columnWrapperStyle={styles.badgeColumnWrapper}
           scrollEnabled={false}
         />
-      </View>
+      </ThemedView>
     </ScrollView>
   );
 }
@@ -84,66 +86,80 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    paddingTop: 60,
+    paddingHorizontal: 16,
   },
   profileHeader: {
     alignItems: 'center',
-    marginBottom: 30,
-    marginTop: 20,
+    marginBottom: 32,
+    paddingVertical: 24,
   },
   avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 16,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   avatarText: {
-    fontSize: 40,
-    fontWeight: 'bold',
+    fontSize: 48,
+    fontFamily: 'Poppins-Bold',
   },
   userName: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontFamily: 'Poppins-Bold',
+    marginBottom: 4,
   },
   userEmail: {
     fontSize: 16,
+    fontFamily: 'Poppins',
+    opacity: 0.7,
   },
   section: {
-    borderRadius: 10,
-    padding: 15,
-    marginBottom: 20,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 15,
+    fontSize: 20,
+    fontFamily: 'Poppins-Bold',
+    marginBottom: 16,
   },
   settingItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: 16,
+    paddingHorizontal: 4,
     borderBottomWidth: 1,
-    borderBottomColor: '#333', // Use a slightly lighter border for dark theme
+    borderBottomColor: 'rgba(0,0,0,0.05)',
   },
   settingText: {
     fontSize: 16,
+    fontFamily: 'Poppins',
   },
   badgeColumnWrapper: {
     justifyContent: 'space-between',
+    marginBottom: 12,
   },
   badgeCard: {
     width: '48%',
-    padding: 15,
-    borderRadius: 10,
+    padding: 20,
+    borderRadius: 16,
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 12,
   },
   badgeText: {
-    marginTop: 5,
+    marginTop: 8,
     fontSize: 14,
+    fontFamily: 'Poppins',
     textAlign: 'center',
+    lineHeight: 18,
   },
 });

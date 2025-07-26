@@ -15,8 +15,8 @@ export default function TabLayout() {
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: Colors.light.card,
-          borderTopColor: Colors.light.card,
+          backgroundColor: Colors[colorScheme].card,
+          borderTopColor: Colors[colorScheme].card,
         },
       }}>
       <Tabs.Screen
@@ -37,9 +37,9 @@ export default function TabLayout() {
         name="scan"
         options={{
           title: '',
-          tabBarIcon: ({ color }) => (
+          tabBarIcon: () => (
             <View style={styles.scanButton}>
-              <Feather name="plus" size={32} color={Colors.light.background} />
+              <Feather name="plus" size={32} color={Colors.dark.background} />
             </View>
           ),
         }}
@@ -64,12 +64,20 @@ export default function TabLayout() {
 
 const styles = StyleSheet.create({
   scanButton: {
-    backgroundColor: Colors.light.tint,
     width: 56,
     height: 56,
     borderRadius: 28,
+    backgroundColor: Colors.dark.tint,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: -10,
+    marginTop: -20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
+    elevation: 8,
   },
 });

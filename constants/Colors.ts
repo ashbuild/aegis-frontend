@@ -1,35 +1,28 @@
-const primaryBackground = '#1A1A2E';
-const accentColor = '#00F5D4';
-const cardBackground = '#1E1E30';
-const primaryText = '#F5F5F5';
-const secondaryText = '#A9A9A9';
-const success = '#00B894';
-const warning = '#FDCB6E';
-const error = '#E74C3C';
+const accent = '#3898FF';
 
 export const Colors = {
   light: {
-    text: primaryText,
-    background: primaryBackground,
-    tint: accentColor,
-    icon: secondaryText,
-    tabIconDefault: secondaryText,
-    tabIconSelected: accentColor,
-    card: cardBackground,
-    success,
-    warning,
-    error,
+    text: '#121212',
+    background: '#F7F7F7',
+    card: '#FFFFFF',
+    tint: accent,
+    icon: '#6B6B6B',
+    tabIconDefault: '#9E9E9E',
+    tabIconSelected: accent,
+    success: '#00B894',
+    warning: '#FDCB6E',
+    error: '#E74C3C',
   },
   dark: {
-    text: primaryText,
-    background: primaryBackground,
-    tint: accentColor,
-    icon: secondaryText,
-    tabIconDefault: secondaryText,
-    tabIconSelected: accentColor,
-    card: cardBackground,
-    success,
-    warning,
-    error,
+    text: '#EAEAEA',
+    background: '#121212',
+    card: '#1E1E1E',
+    tint: accent,
+    icon: '#9E9E9E',
+    tabIconDefault: '#6B6B6B',
+    tabIconSelected: accent,
+    success: '#00B894',
+    warning: '#FDCB6E',
+    error: '#E74C3C',
   },
 };
