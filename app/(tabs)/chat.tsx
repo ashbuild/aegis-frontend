@@ -1,9 +1,15 @@
 import React, { useState, useRef } from 'react';
-import { View, StyleSheet, TextInput, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform, useColorScheme } from 'react-native';
-import { Feather } from '@expo/vector-icons';
-import { ThemedView } from '@/components/ThemedView';
-import { ThemedText } from '@/components/ThemedText';
-import { Colors } from '@/constants/Colors';
+import { View, StyleSheet, FlatList, KeyboardAvoidingView, Platform } from 'react-native';
+import { 
+  Text, 
+  TextInput, 
+  IconButton, 
+  Surface, 
+  Chip,
+  useTheme,
+  Card
+} from 'react-native-paper';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface Message {
   id: string;
@@ -19,7 +25,7 @@ const suggestionChips = [
 ];
 
 export default function ChatScreen() {
-  const colorScheme = useColorScheme();
+  const theme = useTheme();
   const [messages, setMessages] = useState<Message[]>([
     { id: '1', text: 'Hello! How can I help you today?', sender: 'agent' },
   ]);
@@ -54,20 +60,37 @@ export default function ChatScreen() {
       styles.messageContainer,
       item.sender === 'user' ? styles.userMessageContainer : styles.agentMessageContainer,
     ]}>
-      <ThemedView style={[
-        styles.messageBubble,
-        item.sender === 'user' ? { backgroundColor: Colors[colorScheme ?? 'light'].tint } : { backgroundColor: Colors[colorScheme ?? 'light'].card },
-      ]}>
-        <ThemedText style={{ color: item.sender === 'user' ? '#FFFFFF' : Colors[colorScheme ?? 'light'].text }}>
+      <Surface 
+        style={[
+          styles.messageBubble,
+          item.sender === 'user' 
+            ? { backgroundColor: theme.colors.primary } 
+            : { backgroundColor: theme.colors.surfaceVariant }
+        ]}
+        elevation={1}
+      >
+        <Text 
+          variant="bodyMedium"
+          style={{ 
+            color: item.sender === 'user' 
+              ? theme.colors.onPrimary 
+              : theme.colors.onSurfaceVariant 
+          }}
+        >
           {item.text}
-        </ThemedText>
-      </ThemedView>
+        </Text>
+      </Surface>
     </View>
   );
 
   return (
-    <ThemedView style={styles.container}>
-      <ThemedText type="title" style={styles.header}>Aegis Agent</ThemedText>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <Surface style={styles.headerSurface} elevation={1}>
+        <Text variant="headlineSmall" style={[styles.header, { color: theme.colors.onSurface }]}>
+          Aegis Agent
+        </Text>
+      </Surface>
+      
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -87,12 +110,14 @@ export default function ChatScreen() {
           <FlatList
             data={suggestionChips}
             renderItem={({ item }) => (
-              <TouchableOpacity
-                style={[styles.suggestionChip, { backgroundColor: Colors[colorScheme ?? 'light'].card }]}
+              <Chip
+                mode="outlined"
                 onPress={() => handleSuggestionPress(item)}
+                style={styles.suggestionChip}
+                textStyle={styles.suggestionChipText}
               >
-                <ThemedText style={styles.suggestionChipText}>{item}</ThemedText>
-              </TouchableOpacity>
+                {item}
+              </Chip>
             )}
             keyExtractor={(item) => item}
             horizontal
@@ -101,35 +126,46 @@ export default function ChatScreen() {
           />
         </View>
 
-        <View style={[styles.inputContainer, { borderTopColor: Colors[colorScheme ?? 'light'].background }]}>
+        <Surface style={styles.inputContainer} elevation={2}>
           <TextInput
-            style={[styles.input, { backgroundColor: Colors[colorScheme ?? 'light'].card, color: Colors[colorScheme ?? 'light'].text }]}
+            mode="outlined"
             placeholder="Type your message..."
-            placeholderTextColor={Colors[colorScheme ?? 'light'].icon}
             value={inputText}
             onChangeText={setInputText}
+            style={styles.input}
+            contentStyle={styles.inputContent}
+            multiline
+            maxLength={500}
           />
-          <TouchableOpacity style={[styles.sendButton, { backgroundColor: Colors[colorScheme ?? 'light'].tint }]} onPress={handleSendMessage}>
-            <Feather name="arrow-up" size={24} color="#FFFFFF" />
-          </TouchableOpacity>
-        </View>
+          <IconButton
+            icon="send"
+            mode="contained"
+            size={24}
+            onPress={handleSendMessage}
+            disabled={!inputText.trim()}
+            style={styles.sendButton}
+          />
+        </Surface>
       </KeyboardAvoidingView>
-    </ThemedView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 60,
+  },
+  headerSurface: {
+    paddingVertical: 16,
+    paddingHorizontal: 16,
   },
   header: {
-    paddingHorizontal: 16,
-    marginBottom: 16,
+    fontWeight: 'bold',
   },
   messagesList: {
     paddingHorizontal: 16,
     paddingBottom: 16,
+    flexGrow: 1,
   },
   messageContainer: {
     marginVertical: 4,
@@ -147,38 +183,28 @@ const styles = StyleSheet.create({
   },
   suggestionContainer: {
     paddingBottom: 8,
+    paddingHorizontal: 8,
   },
   suggestionChip: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 16,
     marginRight: 8,
-    borderWidth: 1,
-    borderColor: '#EAEAEA',
   },
   suggestionChipText: {
     fontSize: 12,
-    fontFamily: 'Poppins',
   },
   inputContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
-    padding: 8,
-    borderTopWidth: 1,
+    alignItems: 'flex-end',
+    padding: 12,
+    gap: 8,
   },
   input: {
     flex: 1,
-    height: 44,
-    borderRadius: 22,
-    paddingHorizontal: 16,
-    fontFamily: 'Poppins',
+    maxHeight: 100,
+  },
+  inputContent: {
+    paddingVertical: 8,
   },
   sendButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 8,
+    margin: 0,
   },
 });

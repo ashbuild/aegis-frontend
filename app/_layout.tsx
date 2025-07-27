@@ -12,10 +12,12 @@ import 'react-native-reanimated';
 import { useEffect, useState, createContext, useContext } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import { onAuthStateChanged, User } from 'firebase/auth';
+import { PaperProvider } from 'react-native-paper';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { auth } from '@/config/firebase';
+import { paperLightTheme, paperDarkTheme } from '@/constants/PaperTheme';
 
 interface AuthContextType {
   user: User | null;
@@ -140,9 +142,11 @@ export default function RootLayout() {
   return (
     <ErrorBoundary>
       <AuthProvider>
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-          <RootLayoutNav />
-        </ThemeProvider>
+        <PaperProvider theme={colorScheme === 'dark' ? paperDarkTheme : paperLightTheme}>
+          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+            <RootLayoutNav />
+          </ThemeProvider>
+        </PaperProvider>
       </AuthProvider>
     </ErrorBoundary>
   );

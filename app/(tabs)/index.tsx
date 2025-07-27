@@ -1,20 +1,17 @@
 import React from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
+import { Text, Card, Button, FAB, Surface, useTheme } from 'react-native-paper';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { router } from 'expo-router';
 
-import { ThemedView } from '@/components/ThemedView';
-import { ThemedText } from '@/components/ThemedText';
-import { Button, Card, FAB } from '@/components/ui';
 import InsightsWidget from '@/components/widgets/InsightsWidget';
 import TransactionsWidget from '@/components/widgets/TransactionsWidget';
 import IntelligentHubsWidget from '@/components/widgets/IntelligentHubsWidget';
 
-import { useDesignTheme } from '@/hooks/useDesignTheme';
 import { Spacing, Accessibility } from '@/constants/DesignSystem';
 
 export default function HomeScreen() {
-  const { colors, spacing, isDark } = useDesignTheme();
+  const theme = useTheme();
 
   const handleScanReceipt = () => {
     router.push('/(tabs)/scan');
@@ -35,69 +32,65 @@ export default function HomeScreen() {
       entering={FadeInDown.delay(100)}
       style={styles.header}
     >
-      <ThemedText 
-        type="h1" 
-        colorToken="text-primary"
-        accessibilityRole="header"
+      <Text 
+        variant="headlineLarge"
+        style={[styles.title, { color: theme.colors.onBackground }]}
       >
         Welcome to Aegis
-      </ThemedText>
-      <ThemedText 
-        type="body" 
-        colorToken="text-secondary"
-        style={styles.subtitle}
+      </Text>
+      <Text 
+        variant="bodyLarge"
+        style={[styles.subtitle, { color: theme.colors.onSurfaceVariant }]}
       >
         Your intelligent financial companion
-      </ThemedText>
+      </Text>
     </Animated.View>
   );
 
   const QuickActionsCard = () => (
     <Animated.View entering={FadeInDown.delay(200)}>
       <Card 
-        elevation="medium"
+        mode="elevated"
         style={styles.quickActionsCard}
-        accessibilityLabel="Quick actions"
       >
-        <ThemedText 
-          type="h4" 
-          colorToken="text-primary"
-          style={styles.cardTitle}
-        >
-          Quick Actions
-        </ThemedText>
-        <View style={styles.buttonRow}>
-          <Button
-            title="Scan Receipt"
-            variant="primary"
-            size="medium"
-            style={styles.actionButton}
-            onPress={handleScanReceipt}
-            accessibilityHint="Scan a new receipt to add transaction"
-          />
-          <Button
-            title="Add Manually"
-            variant="secondary"
-            size="medium"
-            style={styles.actionButton}
-            onPress={handleAddManually}
-            accessibilityHint="Manually add a new transaction"
-          />
-        </View>
+        <Card.Content>
+          <Text 
+            variant="titleLarge"
+            style={[styles.cardTitle, { color: theme.colors.onSurface }]}
+          >
+            Quick Actions
+          </Text>
+          <View style={styles.buttonRow}>
+            <Button
+              mode="contained"
+              onPress={handleScanReceipt}
+              style={styles.actionButton}
+              contentStyle={styles.actionButtonContent}
+            >
+              Scan Receipt
+            </Button>
+            <Button
+              mode="outlined"
+              onPress={handleAddManually}
+              style={styles.actionButton}
+              contentStyle={styles.actionButtonContent}
+            >
+              Add Manually
+            </Button>
+          </View>
+        </Card.Content>
       </Card>
     </Animated.View>
   );
 
   return (
-    <ThemedView 
-      style={styles.container}
-      backgroundToken="background-primary"
+    <View 
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
     >
       <ScrollView 
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
-        accessibilityLabel="Home screen content"
       >
         <WelcomeHeader />
         <QuickActionsCard />
@@ -112,15 +105,13 @@ export default function HomeScreen() {
       {/* Floating Action Button */}
       <FAB
         icon="plus"
-        size="large"
+        size="medium"
         variant="primary"
-        rotateOnPress={true}
         style={styles.fab}
         onPress={handleFABPress}
         accessibilityLabel={Accessibility.labels.scanReceipt}
-        accessibilityHint="Quick scan receipt"
       />
-    </ThemedView>
+    </View>
   );
 }
 
@@ -139,6 +130,10 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.xl,
     alignItems: 'center',
   },
+  title: {
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
   subtitle: {
     marginTop: Spacing.sm,
     textAlign: 'center',
@@ -148,6 +143,7 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     marginBottom: Spacing.md,
+    fontWeight: 'bold',
   },
   buttonRow: {
     flexDirection: 'row',
@@ -155,6 +151,9 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     flex: 1,
+  },
+  actionButtonContent: {
+    paddingVertical: 8,
   },
   bottomSpacing: {
     height: 100, // Space for FAB

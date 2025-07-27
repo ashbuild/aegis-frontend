@@ -1,15 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, FlatList, ScrollView, TouchableOpacity, useColorScheme, RefreshControl } from 'react-native';
+import { View, StyleSheet, FlatList, ScrollView, RefreshControl } from 'react-native';
+import { 
+  Text,
+  Surface,
+  Card,
+  Chip,
+  useTheme,
+  IconButton,
+  ActivityIndicator
+} from 'react-native-paper';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
-import { ThemedView } from '@/components/ThemedView';
-import { ThemedText } from '@/components/ThemedText';
-import { Colors } from '@/constants/Colors';
 import { apiService, type Transaction } from '@/services/api';
 
 const categories = ['All', 'Food & Drink', 'Shopping', 'Transportation', 'Groceries', 'Entertainment'];
 
 export default function HistoryScreen() {
-  const colorScheme = useColorScheme();
+  const theme = useTheme();
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,57 +59,95 @@ export default function HistoryScreen() {
   const renderCategoryChip = (item: string) => {
     const isSelected = selectedCategory === item;
     return (
-      <TouchableOpacity
+      <Chip
         key={item}
-        style={[
-          styles.categoryChip,
-          { backgroundColor: isSelected ? Colors[colorScheme ?? 'light'].tint : Colors[colorScheme ?? 'light'].card },
-          isSelected && styles.selectedChip,
-        ]}
+        mode={isSelected ? 'flat' : 'outlined'}
+        selected={isSelected}
         onPress={() => setSelectedCategory(item)}
+        style={styles.categoryChip}
       >
-        <ThemedText style={{ color: isSelected ? '#FFFFFF' : Colors[colorScheme ?? 'light'].text, fontFamily: 'Poppins-Bold' }}>
-          {item}
-        </ThemedText>
-      </TouchableOpacity>
+        {item}
+      </Chip>
     );
   };
 
   const renderTransactionItem = ({ item }: { item: Transaction }) => (
-    <ThemedView style={[styles.transactionCard, { shadowColor: Colors[colorScheme ?? 'light'].text }]}>
-      <View style={[styles.iconContainer, { backgroundColor: Colors[colorScheme ?? 'light'].background }]}>
-        <Feather name={item.icon as any} size={20} color={Colors[colorScheme ?? 'light'].icon} />
-      </View>
-      <View style={styles.transactionDetails}>
-        <ThemedText style={styles.transactionMerchant}>{item.merchant}</ThemedText>
-        <ThemedText style={styles.transactionDate}>{formatDate(item.date)}</ThemedText>
-        <ThemedText style={styles.transactionCategory}>{item.category}</ThemedText>
-      </View>
-      <ThemedText style={[styles.transactionAmount, { color: item.amount < 0 ? '#F44336' : '#4CAF50' }]}>
-        {item.amount < 0 ? '-' : '+'}${Math.abs(item.amount).toFixed(2)}
-      </ThemedText>
-    </ThemedView>
+    <Card style={styles.transactionCard} mode="elevated">
+      <Card.Content style={styles.transactionContent}>
+        <Surface style={styles.iconContainer} elevation={1}>
+          <Feather 
+            name={item.icon as any} 
+            size={20} 
+            color={theme.colors.primary}
+          />
+        </Surface>
+        <View style={styles.transactionDetails}>
+          <Text variant="titleMedium" style={styles.transactionMerchant}>
+            {item.merchant}
+          </Text>
+          <Text 
+            variant="bodySmall" 
+            style={[styles.transactionDate, { color: theme.colors.onSurfaceVariant }]}
+          >
+            {formatDate(item.date)}
+          </Text>
+          <Text 
+            variant="labelSmall" 
+            style={[styles.transactionCategory, { color: theme.colors.outline }]}
+          >
+            {item.category}
+          </Text>
+        </View>
+        <Text 
+          variant="titleMedium" 
+          style={[
+            styles.transactionAmount, 
+            { color: item.amount < 0 ? theme.colors.error : '#4CAF50' }
+          ]}
+        >
+          {item.amount < 0 ? '-' : '+'}${Math.abs(item.amount).toFixed(2)}
+        </Text>
+      </Card.Content>
+    </Card>
   );
 
   const totalSpent = filteredTransactions.reduce((sum, transaction) => sum + Math.abs(transaction.amount), 0);
 
   return (
-    <ThemedView style={styles.container}>
-      <ThemedText type="title" style={styles.header}>Transaction History</ThemedText>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <Surface style={styles.headerSurface} elevation={1}>
+        <Text variant="headlineSmall" style={[styles.header, { color: theme.colors.onSurface }]}>
+          Transaction History
+        </Text>
+      </Surface>
       
       {/* Summary Card */}
-      <ThemedView style={[styles.summaryCard, { backgroundColor: Colors[colorScheme ?? 'light'].card }]}>
-        <ThemedText style={styles.summaryLabel}>
-          {selectedCategory === 'All' ? 'Total Transactions' : `${selectedCategory} Spending`}
-        </ThemedText>
-        <ThemedText style={styles.summaryAmount}>${totalSpent.toFixed(2)}</ThemedText>
-        <ThemedText style={styles.summaryCount}>
-          {filteredTransactions.length} transaction{filteredTransactions.length !== 1 ? 's' : ''}
-        </ThemedText>
-      </ThemedView>
+      <Card style={styles.summaryCard} mode="elevated">
+        <Card.Content style={styles.summaryContent}>
+          <Text 
+            variant="bodyMedium" 
+            style={[styles.summaryLabel, { color: theme.colors.onSurfaceVariant }]}
+          >
+            {selectedCategory === 'All' ? 'Total Transactions' : `${selectedCategory} Spending`}
+          </Text>
+          <Text variant="headlineMedium" style={[styles.summaryAmount, { color: theme.colors.primary }]}>
+            ${totalSpent.toFixed(2)}
+          </Text>
+          <Text 
+            variant="bodySmall" 
+            style={[styles.summaryCount, { color: theme.colors.outline }]}
+          >
+            {filteredTransactions.length} transaction{filteredTransactions.length !== 1 ? 's' : ''}
+          </Text>
+        </Card.Content>
+      </Card>
 
       <View style={styles.categoryContainer}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryScrollView}>
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false} 
+          contentContainerStyle={styles.categoryScrollView}
+        >
           {categories.map(cat => renderCategoryChip(cat))}
         </ScrollView>
       </View>
@@ -117,29 +162,40 @@ export default function HistoryScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={Colors[colorScheme ?? 'light'].tint}
+            tintColor={theme.colors.primary}
           />
         }
         ListEmptyComponent={
           loading ? (
-            <ThemedText style={styles.emptyText}>Loading transactions...</ThemedText>
+            <View style={styles.emptyContainer}>
+              <ActivityIndicator size="large" />
+              <Text variant="bodyMedium" style={styles.emptyText}>
+                Loading transactions...
+              </Text>
+            </View>
           ) : (
-            <ThemedText style={styles.emptyText}>No transactions found</ThemedText>
+            <View style={styles.emptyContainer}>
+              <Text variant="bodyMedium" style={styles.emptyText}>
+                No transactions found
+              </Text>
+            </View>
           )
         }
       />
-    </ThemedView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 60,
+  },
+  headerSurface: {
+    paddingVertical: 16,
+    paddingHorizontal: 16,
   },
   header: {
-    paddingHorizontal: 16,
-    marginBottom: 16,
+    fontWeight: 'bold',
   },
   categoryContainer: {
     paddingBottom: 16,
@@ -148,32 +204,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   categoryChip: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 20,
-    marginRight: 10,
-    elevation: 2,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    marginRight: 8,
   },
-  selectedChip: {
-    elevation: 4,
-    shadowOpacity: 0.2,
+  categoryChipText: {
+    fontSize: 12,
+    fontWeight: '600',
   },
   transactionsList: {
     paddingHorizontal: 16,
+    paddingBottom: 20,
   },
   transactionCard: {
+    marginBottom: 12,
+  },
+  transactionContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 16,
-    padding: 12,
-    marginBottom: 12,
-    elevation: 2,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
+    paddingVertical: 4,
   },
   iconContainer: {
     width: 40,
@@ -187,54 +234,41 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   transactionMerchant: {
-    fontSize: 16,
-    fontFamily: 'Poppins-Bold',
+    fontWeight: '600',
   },
   transactionDate: {
-    fontSize: 12,
-    color: '#9E9E9E',
-    fontFamily: 'Poppins',
+    marginTop: 2,
   },
   transactionCategory: {
-    fontSize: 10,
-    color: '#666',
-    fontFamily: 'Poppins',
     marginTop: 2,
   },
   transactionAmount: {
-    fontSize: 16,
-    fontFamily: 'Poppins-Bold',
+    fontWeight: '600',
   },
   summaryCard: {
     marginHorizontal: 16,
     marginBottom: 16,
-    padding: 16,
-    borderRadius: 12,
+  },
+  summaryContent: {
     alignItems: 'center',
-    elevation: 2,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
   },
   summaryLabel: {
-    fontSize: 14,
-    color: '#666',
-    fontFamily: 'Poppins',
+    textAlign: 'center',
   },
   summaryAmount: {
-    fontSize: 24,
-    fontFamily: 'Poppins-Bold',
+    fontWeight: 'bold',
     marginVertical: 4,
   },
   summaryCount: {
-    fontSize: 12,
-    color: '#999',
-    fontFamily: 'Poppins',
+    textAlign: 'center',
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
   },
   emptyText: {
     textAlign: 'center',
-    color: '#999',
-    marginTop: 50,
-    fontSize: 16,
+    marginTop: 16,
   },
 });

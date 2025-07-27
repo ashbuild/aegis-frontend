@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
-import { Text, Surface, useTheme, IconButton, TextInput, Button } from 'react-native-paper';
+import { Text, Surface, useTheme, IconButton, TextInput } from 'react-native-paper';
 import { Link, useRouter } from 'expo-router';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import * as SecureStore from 'expo-secure-store';
 
+import { PaperButton } from '@/components/ui';
 import { auth } from '@/config/firebase';
 
-export default function LoginScreen() {
+export default function PaperLoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -27,7 +28,7 @@ export default function LoginScreen() {
   };
 
   const handleLogin = async () => {
-    console.log('=== LOGIN ATTEMPT STARTED ===');
+    console.log('=== PAPER LOGIN ATTEMPT STARTED ===');
     console.log('Email:', email);
     console.log('Password length:', password.length);
     
@@ -47,19 +48,10 @@ export default function LoginScreen() {
           projectId: auth.app.options.projectId
         });
         
-        // Check network connectivity
-        try {
-          const response = await fetch('https://www.googleapis.com/identitytoolkit/v3/relyingparty/getProjectConfig?key=' + auth.app.options.apiKey);
-          console.log('Firebase connectivity test:', response.status === 200 ? '✅' : '❌');
-        } catch (e) {
-          console.log('Firebase connectivity test failed:', e);
-        }
-        
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         console.log('✅ Sign in successful!');
         console.log('User ID:', userCredential.user.uid);
         
-        // Get and store the auth token
         try {
           const token = await userCredential.user.getIdToken();
           await SecureStore.setItemAsync('authToken', token);
@@ -166,16 +158,15 @@ export default function LoginScreen() {
             left={<TextInput.Icon icon="lock" />}
           />
 
-          <Button
-            mode="contained"
-            onPress={handleLogin}
+          <PaperButton
+            title={loading ? 'Signing in...' : 'Sign In'}
+            variant="primary"
+            size="large"
             loading={loading}
             disabled={loading}
+            onPress={handleLogin}
             style={styles.button}
-            contentStyle={styles.buttonContent}
-          >
-            {loading ? 'Signing in...' : 'Sign In'}
-          </Button>
+          />
 
           <View style={styles.linkContainer}>
             <Link href="/register" style={styles.link}>
@@ -223,9 +214,6 @@ const styles = StyleSheet.create({
   },
   button: {
     marginTop: 16,
-  },
-  buttonContent: {
-    paddingVertical: 8,
   },
   linkContainer: {
     alignItems: 'center',

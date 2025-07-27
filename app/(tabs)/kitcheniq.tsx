@@ -1,16 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { ScrollView, StyleSheet, View, TextInput, Dimensions, Alert } from 'react-native';
-import { ThemedView } from '@/components/ThemedView';
-import { ThemedText } from '@/components/ThemedText';
-import { Card, Button } from '@/components/ui';
+import { ScrollView, StyleSheet, View, Dimensions, Alert } from 'react-native';
+import { 
+  Text,
+  Card,
+  Button,
+  TextInput,
+  Surface,
+  useTheme,
+  ActivityIndicator,
+  Badge
+} from 'react-native-paper';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Spacing } from '@/constants/DesignSystem';
-import { useDesignTheme } from '@/hooks/useDesignTheme';
 import { apiService, type GroceryItem } from '@/services/api';
 import { BarChart } from 'react-native-chart-kit';
-import { Feather } from '@expo/vector-icons';
 
 export default function KitchenIQScreen() {
-  const { colors } = useDesignTheme();
+  const theme = useTheme();
   const [groceryItems, setGroceryItems] = useState<GroceryItem[]>([]);
   const [nutritionData, setNutritionData] = useState<any>(null);
   const [calorieData, setCalorieData] = useState<any>(null);
@@ -66,97 +72,172 @@ export default function KitchenIQScreen() {
   const screenWidth = Dimensions.get('window').width;
 
   return (
-    <ThemedView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
-        <ThemedText type="h1" style={styles.title}>KitchenIQ</ThemedText>
+        <Surface style={styles.headerSurface} elevation={1}>
+          <Text variant="headlineLarge" style={[styles.title, { color: theme.colors.onSurface }]}>
+            KitchenIQ
+          </Text>
+        </Surface>
 
         {/* What's New & What to Use First */}
-        <Card elevation="medium" style={styles.card}>
-          <ThemedText type="h3" style={styles.cardTitle}>What's New & What to Use First</ThemedText>
-          <View style={styles.cardContent}>
+        <Card style={styles.card} mode="elevated">
+          <Card.Title 
+            title="What's New & What to Use First"
+            titleVariant="titleLarge"
+            titleStyle={{ color: theme.colors.onSurface }}
+          />
+          <Card.Content>
             {loading ? (
-              <ThemedText type="body">Loading your grocery items...</ThemedText>
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="small" />
+                <Text variant="bodyMedium" style={{ marginTop: 8 }}>
+                  Loading your grocery items...
+                </Text>
+              </View>
             ) : (
               getItemsByPriority().map((item) => (
                 <View key={item.id} style={styles.groceryItem}>
                   <View style={styles.itemInfo}>
-                    <ThemedText type="body" style={styles.itemName}>{item.name}</ThemedText>
-                    <ThemedText type="caption" style={styles.itemExpiry}>
+                    <Text variant="bodyLarge" style={styles.itemName}>
+                      {item.name}
+                    </Text>
+                    <Text 
+                      variant="bodySmall" 
+                      style={[styles.itemExpiry, { color: theme.colors.onSurfaceVariant }]}
+                    >
                       Expires: {new Date(item.expiryDate).toLocaleDateString()}
-                    </ThemedText>
+                    </Text>
                   </View>
-                  <View style={[styles.nutritionScore, { backgroundColor: item.nutritionScore > 90 ? '#4CAF50' : item.nutritionScore > 70 ? '#FF9800' : '#F44336' }]}>
-                    <ThemedText type="caption" style={styles.scoreText}>{item.nutritionScore}</ThemedText>
-                  </View>
+                  <Badge 
+                    size={32}
+                    style={[
+                      styles.nutritionScore,
+                      { 
+                        backgroundColor: item.nutritionScore > 90 
+                          ? '#4CAF50' 
+                          : item.nutritionScore > 70 
+                            ? '#FF9800' 
+                            : '#F44336' 
+                      }
+                    ]}
+                  >
+                    {item.nutritionScore}
+                  </Badge>
                 </View>
               ))
             )}
-          </View>
+          </Card.Content>
         </Card>
 
         {/* Nutrition Snapshot */}
-        <Card elevation="medium" style={styles.card}>
-          <ThemedText type="h3" style={styles.cardTitle}>Nutrition Snapshot</ThemedText>
-          <View style={styles.cardContent}>
+        <Card style={styles.card} mode="elevated">
+          <Card.Title 
+            title="Nutrition Snapshot"
+            titleVariant="titleLarge"
+            titleStyle={{ color: theme.colors.onSurface }}
+          />
+          <Card.Content>
             {loading || !nutritionData ? (
-              <ThemedText type="body">Loading nutrition data...</ThemedText>
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="small" />
+                <Text variant="bodyMedium" style={{ marginTop: 8 }}>
+                  Loading nutrition data...
+                </Text>
+              </View>
             ) : (
               <>
                 {nutritionData.highlights.map((highlight: string, index: number) => (
-                  <ThemedText key={index} type="body" style={styles.highlight}>• {highlight}</ThemedText>
+                  <Text 
+                    key={index} 
+                    variant="bodyMedium" 
+                    style={[styles.highlight, { color: theme.colors.onSurface }]}
+                  >
+                    • {highlight}
+                  </Text>
                 ))}
                 <View style={styles.nutritionGrid}>
-                  <View style={styles.nutritionItem}>
-                    <ThemedText type="caption">Protein</ThemedText>
-                    <ThemedText type="h4">{nutritionData.protein.value}g</ThemedText>
-                    <ThemedText type="caption">of {nutritionData.protein.target}g</ThemedText>
-                  </View>
-                  <View style={styles.nutritionItem}>
-                    <ThemedText type="caption">Carbs</ThemedText>
-                    <ThemedText type="h4">{nutritionData.carbs.value}g</ThemedText>
-                    <ThemedText type="caption">of {nutritionData.carbs.target}g</ThemedText>
-                  </View>
+                  <Surface style={styles.nutritionItem} elevation={1}>
+                    <Text variant="labelMedium" style={{ color: theme.colors.onSurfaceVariant }}>
+                      Protein
+                    </Text>
+                    <Text variant="headlineSmall" style={{ color: theme.colors.primary }}>
+                      {nutritionData.protein.value}g
+                    </Text>
+                    <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
+                      of {nutritionData.protein.target}g
+                    </Text>
+                  </Surface>
+                  <Surface style={styles.nutritionItem} elevation={1}>
+                    <Text variant="labelMedium" style={{ color: theme.colors.onSurfaceVariant }}>
+                      Carbs
+                    </Text>
+                    <Text variant="headlineSmall" style={{ color: theme.colors.primary }}>
+                      {nutritionData.carbs.value}g
+                    </Text>
+                    <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
+                      of {nutritionData.carbs.target}g
+                    </Text>
+                  </Surface>
                 </View>
               </>
             )}
-          </View>
+          </Card.Content>
         </Card>
 
         {/* Recipe on Demand */}
-        <Card elevation="medium" style={styles.card}>
-          <ThemedText type="h3" style={styles.cardTitle}>Recipe on Demand</ThemedText>
-          <View style={styles.cardContent}>
-            <ThemedText type="body" style={styles.recipeDescription}>
+        <Card style={styles.card} mode="elevated">
+          <Card.Title 
+            title="Recipe on Demand"
+            titleVariant="titleLarge"
+            titleStyle={{ color: theme.colors.onSurface }}
+          />
+          <Card.Content>
+            <Text 
+              variant="bodyMedium" 
+              style={[styles.recipeDescription, { color: theme.colors.onSurfaceVariant }]}
+            >
               Tell us what you want to make or list your ingredients
-            </ThemedText>
+            </Text>
             <TextInput
-              style={[styles.recipeInput, { backgroundColor: colors['background-surface'], color: colors['text-primary'] }]}
+              mode="outlined"
               placeholder="e.g., chicken, broccoli, pasta..."
-              placeholderTextColor={colors['text-secondary']}
               value={recipeInput}
               onChangeText={setRecipeInput}
               multiline
+              numberOfLines={3}
+              style={styles.recipeInput}
             />
             <Button
-              title="Generate Recipe"
-              variant="primary"
-              size="medium"
+              mode="contained"
               onPress={handleGenerateRecipe}
               style={styles.generateButton}
-            />
-          </View>
+              contentStyle={styles.generateButtonContent}
+            >
+              Generate Recipe
+            </Button>
+          </Card.Content>
         </Card>
 
         {/* Calorie Chart */}
-        <Card elevation="medium" style={styles.card}>
-          <ThemedText type="h3" style={styles.cardTitle}>Weekly Calorie Chart</ThemedText>
-          <View style={styles.cardContent}>
+        <Card style={styles.card} mode="elevated">
+          <Card.Title 
+            title="Weekly Calorie Chart"
+            titleVariant="titleLarge"
+            titleStyle={{ color: theme.colors.onSurface }}
+          />
+          <Card.Content>
             {loading || !calorieData ? (
-              <ThemedText type="body">Loading calorie distribution...</ThemedText>
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="small" />
+                <Text variant="bodyMedium" style={{ marginTop: 8 }}>
+                  Loading calorie distribution...
+                </Text>
+              </View>
             ) : (
               <BarChart
                 data={calorieData}
@@ -165,20 +246,20 @@ export default function KitchenIQScreen() {
                 yAxisLabel=""
                 yAxisSuffix="cal"
                 chartConfig={{
-                  backgroundColor: colors['background-surface'],
-                  backgroundGradientFrom: colors['background-surface'],
-                  backgroundGradientTo: colors['background-surface'],
+                  backgroundColor: theme.colors.surface,
+                  backgroundGradientFrom: theme.colors.surface,
+                  backgroundGradientTo: theme.colors.surface,
                   decimalPlaces: 0,
-                  color: (opacity = 1) => colors['action-primary'] + Math.round(opacity * 255).toString(16).padStart(2, '0'),
-                  labelColor: (opacity = 1) => colors['text-primary'] + Math.round(opacity * 255).toString(16).padStart(2, '0'),
+                  color: (opacity = 1) => theme.colors.primary + Math.round(opacity * 255).toString(16).padStart(2, '0'),
+                  labelColor: (opacity = 1) => theme.colors.onSurface + Math.round(opacity * 255).toString(16).padStart(2, '0'),
                 }}
                 style={styles.chart}
               />
             )}
-          </View>
+          </Card.Content>
         </Card>
       </ScrollView>
-    </ThemedView>
+    </SafeAreaView>
   );
 }
 
@@ -191,20 +272,23 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     padding: Spacing.md,
-    paddingTop: Spacing.xl,
+  },
+  headerSurface: {
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    marginBottom: Spacing.lg,
   },
   title: {
-    marginBottom: Spacing.xl,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
   card: {
     marginBottom: Spacing.lg,
-    padding: Spacing.md,
   },
-  cardTitle: {
-    marginBottom: Spacing.sm,
-  },
-  cardContent: {
-    marginTop: Spacing.sm,
+  loadingContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 20,
   },
   highlight: {
     fontWeight: '600',
@@ -225,44 +309,34 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   itemExpiry: {
-    color: '#666',
     marginTop: 2,
   },
   nutritionScore: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  scoreText: {
-    color: '#FFF',
-    fontWeight: 'bold',
-    fontSize: 12,
+    alignSelf: 'center',
   },
   nutritionGrid: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     marginTop: Spacing.md,
+    gap: Spacing.sm,
   },
   nutritionItem: {
     alignItems: 'center',
+    padding: Spacing.md,
+    borderRadius: 8,
+    flex: 1,
   },
   recipeDescription: {
     marginBottom: Spacing.md,
-    color: '#666',
   },
   recipeInput: {
-    borderWidth: 1,
-    borderColor: '#DDD',
-    borderRadius: 8,
-    padding: Spacing.md,
-    minHeight: 80,
-    textAlignVertical: 'top',
     marginBottom: Spacing.md,
   },
   generateButton: {
     marginTop: Spacing.sm,
+  },
+  generateButtonContent: {
+    paddingVertical: 8,
   },
   chart: {
     marginVertical: Spacing.sm,
